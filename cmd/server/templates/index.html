@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Mail Sicherheits-Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #050505;
+            color: #e5e5e5;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column
+        }
+
+        /* Header */
+        header {
+            background: #0a0a0a;
+            border-bottom: 1px solid #222;
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0
+        }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            background: #0a0a0a;
+            border-right: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            min-height: 0
+        }
+
+        .upload-section {
+            padding: 20px;
+            border-bottom: 1px solid #222
+        }
+
+        .upload-btn {
+            display: block;
+            background: #2563eb;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: .2s
+        }
+
+        .upload-btn:hover {
+            background: #1d4ed8
+        }
+
+        input[type="file"] {
+            display: none
+        }
+
+        .test-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px
+        }
+
+        .sub-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #666;
+            letter-spacing: 1px;
+            margin: 10px 10px 5px;
+            font-weight: 600
+        }
+
+        .test-item {
+            display: block;
+            padding: 10px 12px;
+            color: #aaa;
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 6px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .test-item:hover {
+            background: #1a1a1a;
+            color: #fff
+        }
+
+        .test-item.active {
+            background: #1a1a1a;
+            color: #fff;
+            border-left: 2px solid #2563eb
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            min-height: 0
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444;
+            flex-direction: column;
+            gap: 16px
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            opacity: 0.2
+        }
+
+        /* Analysis Panel (Left) */
+        .analysis-panel {
+            width: 50%;
+            border-right: 1px solid #222;
+            overflow-y: auto;
+            padding: 30px;
+            background: #080808
+        }
+
+        .score-card {
+            background: #111;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 1px solid #222;
+            position: relative;
+            overflow: hidden
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #333
+        }
+
+        .score-card.safe::before {
+            background: #22c55e
+        }
+
+        .score-card.danger::before {
+            background: #ef4444
+        }
+
+        .score-val {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1
+        }
+
+        .score-val.safe {
+            color: #22c55e
+        }
+
+        .score-val.danger {
+            color: #ef4444
+        }
+
+        .score-label {
+            color: #888;
+            font-size: 13px;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 30px 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff
+        }
+
+        .section-score {
+            font-size: 13px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #1a1a1a
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #161616;
+            font-size: 13px
+        }
+
+        .info-label {
+            color: #888
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .tag.green {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e
+        }
+
+        .tag.red {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444
+        }
+
+        .tag.gray {
+            background: rgba(255, 255, 255, 0.05);
+            color: #666
+        }
+
+        .trigger-box {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px
+        }
+
+        .trigger-text {
+            color: #ef4444;
+            font-weight: 500;
+            font-size: 13px;
+            margin-bottom: 4px;
+            display: block
+        }
+
+        .trigger-desc {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4
+        }
+
+        /* Preview Panel (Right) */
+        .preview-panel {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            color: #000
+        }
+
+        .preview-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e5e5;
+            background: #f5f5f5
+        }
+
+        .preview-meta {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 4px
+        }
+
+        .preview-subject {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            margin-top: 4px
+        }
+
+        .preview-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            font-family: georgia, serif;
+            line-height: 1.6;
+            font-size: 15px;
+            white-space: pre-wrap
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted #666
+        }
+
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: #1a1a1a;
+            color: #e5e5e5;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: nowrap;
+            max-width: 300px;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+            margin-bottom: 8px
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1a1a1a;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 3px
+        }
+
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1
+        }
+
+        /* Loading Screen */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            backdrop-filter: blur(5px)
+        }
+
+        .loader-content {
+            text-align: center;
+            width: 300px
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #2563eb;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 20px
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .loading-text {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+            transition: width 0.2s ease
+        }
+
+        .progress-stats {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🛡️ Phishing Radar</h1>
+    </header>
+    <div class="container">
+        <aside>
+            <div class="upload-section">
+                <form action="/analyze" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <label class="upload-btn">
+                        Datei hochladen
+                        <input type="file" name="emailFile" onchange="document.getElementById('uploadForm').submit()">
+                    </label>
+                </form>
+            </div>
+            <div class="sub-header">Test-Datensätze</div>
+            <div class="test-list">
+                {{range .TestEmails}}
+                <a href="/analyze?testFile={{.}}"
+                    class="test-item {{if $.Analysis}}{{if eq $.Analysis.FileName .}}active{{end}}{{end}}">� {{.}}</a>
+                {{end}}
+            </div>
+
+
+        </aside>
+
+        {{if .Analysis}}
+        <main>
+            <!-- Left: Analysis -->
+            <div class="analysis-panel">
+                <div class="score-card {{if gt .Analysis.ScamProbability 50.0}}danger{{else}}safe{{end}}">
+                    <div class="score-val {{if gt .Analysis.ScamProbability 50.0}}danger{{else}}safe{{end}}">
+                        {{printf "%.0f" .Analysis.ScamProbability}}%
+                    </div>
+                    <div class="score-label">Phishing-Wahrscheinlichkeit</div>
+                </div>
+
+                <div class="section-title">
+                    <span class="tooltip"
+                        data-tooltip="Überprüfung von DNS-Einträgen, Domain-Vertrauenswürdigkeit und technischen Sicherheitsmerkmalen">e</span>Technische
+                    Analyse</span>
+                    <span class="section-score">Score: {{printf "%.0f" .Analysis.TechScore}}%</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label tooltip"
+                        data-tooltip="Prüft ob die Absender-Domain bekannt und vertrauenswürdig ist">Domain
+                        Vertrauenswürdigkeit</span>
+                    {{if eq .Analysis.RiskFactors.DomainTrustScore "Trustworthy"}}<span class="tag green tooltip"
+                        data-tooltip="Domain ist in der Whitelist bekannter vertrauenswürdiger Absender">HOCH</span>
+                    {{else if eq .Analysis.RiskFactors.DomainTrustScore "Suspicious"}}<span class="tag red tooltip"
+                        data-tooltip="Domain wurde als verdächtig eingestuft">NIEDRIG</span>
+                    {{else if eq .Analysis.RiskFactors.DomainTrustScore "Unknown"}}<span class="tag gray tooltip"
+                        data-tooltip="Domain konnte nicht extrahiert oder analysiert werden">UNBEKANNT</span>
+                    {{else}}<span class="tag gray tooltip"
+                        data-tooltip="Domain ist weder auf der Whitelist noch Blacklist">OK (NEUTRAL)</span>{{end}}
+                </div>
+                <div class="info-row">
+                    <span class="info-label tooltip"
+                        data-tooltip="Prüfung gegen Spamhaus Domain Block List via DNS-Abfrage">Blacklist Status
+                        (API)</span>
+                    {{if eq .Analysis.RiskFactors.BlacklistStatus "Clean"}}<span class="tag green tooltip"
+                        data-tooltip="Domain ist nicht auf bekannten Spam-Blacklists">SAUBER</span>
+                    {{else if eq .Analysis.RiskFactors.BlacklistStatus "Listed"}}<span class="tag red tooltip"
+                        data-tooltip="Domain wurde auf Spam-Blacklist gefunden!">GELISTET (SPAM)</span>
+                    {{else if eq .Analysis.RiskFactors.BlacklistStatus "API Error"}}<span class="tag gray tooltip"
+                        data-tooltip="API-Anfrage fehlgeschlagen, Fallback auf lokale DNS-Prüfung">API FEHLER</span>
+                    {{else}}<span class="tag gray tooltip"
+                        data-tooltip="Blacklist-Status konnte nicht ermittelt werden">UNBEKANNT</span>{{end}}
+                </div>
+                <div class="info-row">
+                    <span class="info-label tooltip"
+                        data-tooltip="SPF (Sender Policy Framework) verhindert E-Mail-Spoofing">SPF Record (Live)</span>
+                    {{if .Analysis.RiskFactors.HasSPF}}<span class="tag green tooltip"
+                        data-tooltip="SPF-Eintrag gefunden - Domain hat Anti-Spoofing-Schutz">VORHANDEN</span>
+                    {{else}}<span class="tag gray tooltip"
+                        data-tooltip="Kein SPF-Eintrag - Domain könnte leichter gefälscht werden">FEHLT</span>{{end}}
+                </div>
+                <div class="info-row">
+                    <span class="info-label tooltip"
+                        data-tooltip="DMARC definiert wie mit gefälschten E-Mails umgegangen wird">DMARC Record
+                        (Live)</span>
+                    {{if .Analysis.RiskFactors.HasDMARC}}<span class="tag green tooltip"
+                        data-tooltip="DMARC-Richtlinie aktiv - zusätzlicher Schutz gegen Phishing">VORHANDEN</span>
+                    {{else}}<span class="tag gray tooltip"
+                        data-tooltip="Keine DMARC-Richtlinie konfiguriert">FEHLT</span>{{end}}
+                </div>
+                <div class="info-row">
+                    <span class="info-label tooltip"
+                        data-tooltip="Prüft ob From- und Return-Path-Domain übereinstimmen">Domain Konsistenz</span>
+                    {{if .Analysis.RiskFactors.DomainMismatch}}<span class="tag red tooltip"
+                        data-tooltip="Absender-Domain stimmt nicht mit Return-Path überein - typisch für Phishing!">MISMATCH</span>
+                    {{else}}<span class="tag green tooltip"
+                        data-tooltip="Domains stimmen überein - kein Spoofing-Verdacht">OK</span>{{end}}
+                </div>
+
+                <div class="section-title">
+                    <span class="tooltip"
+                        data-tooltip="Analyse des E-Mail-Inhalts auf typische Phishing-Wörter und Formulierungen">Inhaltliche
+                        Analyse</span>
+                    <span class="section-score">Score: {{printf "%.0f" .Analysis.BodyScore}}%</span>
+                </div>
+                {{if .Analysis.BodyTriggers}}
+                {{range .Analysis.BodyTriggers}}
+                <div class="trigger-box">
+                    <span class="trigger-text">⚠ {{.Text}}</span>
+                    <span class="trigger-desc">{{.Explanation}}</span>
+                </div>
+                {{end}}
+                {{else}}
+                <div class="info-row" style="justify-content:center;color:#22c55e;font-weight:500;">
+                    ✅ Keine inhaltlichen Auffälligkeiten
+                </div>
+                {{end}}
+                <div class="info-row">
+                    <span class="info-label tooltip"
+                        data-tooltip="Prozentsatz an Großbuchstaben im Text - hohe Werte deuten auf aggressive Spam-Mails hin">Aggressivität
+                        (Caps)</span>
+                    <span class="tag {{if gt .Analysis.RiskFactors.ShoutingScore 25.0}}red{{else}}gray{{end}} tooltip"
+                        data-tooltip="{{if gt .Analysis.RiskFactors.ShoutingScore 25.0}}Ungewöhnlich viele Großbuchstaben{{else}}Normale Großschreibung{{end}}">{{printf
+                        "%.0f" .Analysis.RiskFactors.ShoutingScore}}%</span>
+                </div>
+
+                <div class="section-title">
+                    <span class="tooltip"
+                        data-tooltip="Prüfung der Betreffzeile auf verdächtige Keywords und Formulierungen">Betreff &
+                        Keywords</span>
+                    <span class="section-score">Score: {{printf "%.0f" .Analysis.SubjectScore}}%</span>
+                </div>
+                {{if .Analysis.SubjectTriggers}}
+                {{range .Analysis.SubjectTriggers}}
+                <div class="trigger-box">
+                    <span class="trigger-text">⚠ {{.Text}}</span>
+                    <span class="trigger-desc">{{.Explanation}}</span>
+                </div>
+                {{end}}
+                {{end}}
+                {{if .Analysis.RiskFactors.Suspiciouskeywords}}
+                {{range .Analysis.RiskFactors.Suspiciouskeywords}}
+                <div class="trigger-box">
+                    <span class="trigger-text">🚩 {{.}}</span>
+                    <span class="trigger-desc">Kritisches Keyword im Betreff gefunden</span>
+                </div>
+                {{end}}
+                {{end}}
+            </div>
+
+            <!-- Right: Preview -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <div class="preview-meta">Von: {{.Analysis.RiskFactors.Domain}}</div>
+                    <div class="preview-subject">Vorschau der E-Mail</div>
+                </div>
+                <div class="preview-body">{{.Analysis.EmailBody}}</div>
+            </div>
+        </main>
+        {{else}}
+        <main>
+            <div class="empty-state">
+                <div class="empty-icon">🛡️</div>
+                <p>Wählen Sie eine Datei zur Analyse aus</p>
+            </div>
+        </main>
+        {{end}}
+    </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <div class="loading-text">Analysiere E-Mail...</div>
+            <div class="progress-bar">
+                <div class="loading-text">Analysiere E-Mail...</div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const loader = document.getElementById('loader');
+
+                function showLoader() {
+                    loader.style.display = 'flex';
+                }
+
+                async function handleResponse(response) {
+                    if (!response.ok) {
+                        alert("Fehler bei der Analyse: " + response.statusText);
+                        loader.style.display = 'none';
+                        return;
+                    }
+                    const html = await response.text();
+
+                    // Replace the entire document content
+                    document.open();
+                    document.write(html);
+                    document.close();
+                }
+
+                const uploadForm = document.getElementById('uploadForm');
+                if (uploadForm) {
+                    const fileInput = uploadForm.querySelector('input[name="emailFile"]');
+
+                    // Allow re-uploading the same file by clearing value on click
+                    fileInput.addEventListener('click', () => {
+                        fileInput.value = '';
+                    });
+
+                    // Trigger submit on file select
+                    fileInput.addEventListener('change', () => {
+                        if (fileInput.files.length > 0) {
+                            uploadForm.requestSubmit();
+                        }
+                    });
+
+                    // Hijack submit to use Fetch
+                    uploadForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        showLoader();
+
+                        const formData = new FormData(uploadForm);
+                        try {
+                            const response = await fetch('/analyze', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            // Update URL bar if redirect happened (fetch follows 303 automatically)
+                            if (response.url && response.url !== window.location.href) {
+                                window.history.pushState({}, '', response.url);
+                            }
+
+                            await handleResponse(response);
+                        } catch (err) {
+                            console.error(err);
+                            alert("Ein Netzwerkfehler ist aufgetreten.");
+                            loader.style.display = 'none';
+                            fileInput.value = ''; // Reset on error too
+                        }
+                    });
+                }
+
+                // Hijack test links
+                document.querySelectorAll('.test-item').forEach(link => {
+                    link.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        showLoader();
+
+                        try {
+                            const response = await fetch(link.href);
+                            if (response.url && response.url !== window.location.href) {
+                                window.history.pushState({}, '', response.url);
+                            }
+                            await handleResponse(response);
+                        } catch (err) {
+                            console.error(err);
+                            alert("Ein Netzwerkfehler ist aufgetreten.");
+                            loader.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        </script>
+</body>
+
+</html>

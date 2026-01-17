@@ -1,0 +1,1020 @@
+{
+  "safe_stats": {
+    "total_emails": 0,
+    "avg_word_count": 0,
+    "avg_sentence_length": 0,
+    "avg_shouting_score": 0,
+    "top_body_words": null,
+    "top_subject_words": null
+  },
+  "scam_stats": {
+    "total_emails": 1565,
+    "avg_word_count": 687.0817891373802,
+    "avg_sentence_length": 13.354632587859426,
+    "avg_shouting_score": 0.09151527156549522,
+    "top_body_words": [
+      {
+        "word": "account",
+        "count": 868,
+        "percent": 55.46325878594249
+      },
+      {
+        "word": "email",
+        "count": 778,
+        "percent": 49.712460063897765
+      },
+      {
+        "word": "click",
+        "count": 627,
+        "percent": 40.063897763578275
+      },
+      {
+        "word": "security",
+        "count": 470,
+        "percent": 30.031948881789138
+      },
+      {
+        "word": "information",
+        "count": 458,
+        "percent": 29.26517571884984
+      },
+      {
+        "word": "update",
+        "count": 399,
+        "percent": 25.495207667731627
+      },
+      {
+        "word": "service",
+        "count": 356,
+        "percent": 22.747603833865814
+      },
+      {
+        "word": "customer",
+        "count": 320,
+        "percent": 20.447284345047922
+      },
+      {
+        "word": "reserved",
+        "count": 295,
+        "percent": 18.849840255591054
+      },
+      {
+        "word": "rights",
+        "count": 288,
+        "percent": 18.402555910543132
+      },
+      {
+        "word": "view",
+        "count": 282,
+        "percent": 18.01916932907348
+      },
+      {
+        "word": "address",
+        "count": 282,
+        "percent": 18.01916932907348
+      },
+      {
+        "word": "verify",
+        "count": 278,
+        "percent": 17.763578274760384
+      },
+      {
+        "word": "link",
+        "count": 258,
+        "percent": 16.48562300319489
+      },
+      {
+        "word": "access",
+        "count": 252,
+        "percent": 16.102236421725237
+      },
+      {
+        "word": "online",
+        "count": 237,
+        "percent": 15.143769968051119
+      },
+      {
+        "word": "services",
+        "count": 226,
+        "percent": 14.440894568690096
+      },
+      {
+        "word": "need",
+        "count": 223,
+        "percent": 14.249201277955272
+      },
+      {
+        "word": "kindly",
+        "count": 221,
+        "percent": 14.121405750798722
+      },
+      {
+        "word": "privacy",
+        "count": 214,
+        "percent": 13.6741214057508
+      },
+      {
+        "word": "note",
+        "count": 213,
+        "percent": 13.610223642172524
+      },
+      {
+        "word": "more",
+        "count": 207,
+        "percent": 13.226837060702875
+      },
+      {
+        "word": "secure",
+        "count": 207,
+        "percent": 13.226837060702875
+      },
+      {
+        "word": "due",
+        "count": 206,
+        "percent": 13.162939297124602
+      },
+      {
+        "word": "messages",
+        "count": 203,
+        "percent": 12.971246006389775
+      },
+      {
+        "word": "mailbox",
+        "count": 202,
+        "percent": 12.907348242811501
+      },
+      {
+        "word": "confirm",
+        "count": 198,
+        "percent": 12.651757188498403
+      },
+      {
+        "word": "system",
+        "count": 198,
+        "percent": 12.651757188498403
+      },
+      {
+        "word": "details",
+        "count": 192,
+        "percent": 12.268370607028753
+      },
+      {
+        "word": "payment",
+        "count": 190,
+        "percent": 12.140575079872203
+      },
+      {
+        "word": "receive",
+        "count": 187,
+        "percent": 11.948881789137381
+      },
+      {
+        "word": "continue",
+        "count": 185,
+        "percent": 11.821086261980831
+      },
+      {
+        "word": "hours",
+        "count": 184,
+        "percent": 11.757188498402556
+      },
+      {
+        "word": "password",
+        "count": 180,
+        "percent": 11.501597444089457
+      },
+      {
+        "word": "upgrade",
+        "count": 176,
+        "percent": 11.246006389776358
+      },
+      {
+        "word": "sign",
+        "count": 173,
+        "percent": 11.054313099041533
+      },
+      {
+        "word": "using",
+        "count": 173,
+        "percent": 11.054313099041533
+      },
+      {
+        "word": "server",
+        "count": 173,
+        "percent": 11.054313099041533
+      },
+      {
+        "word": "user",
+        "count": 165,
+        "percent": 10.543130990415335
+      },
+      {
+        "word": "copyright",
+        "count": 165,
+        "percent": 10.543130990415335
+      },
+      {
+        "word": "follow",
+        "count": 161,
+        "percent": 10.287539936102236
+      },
+      {
+        "word": "verification",
+        "count": 159,
+        "percent": 10.159744408945686
+      },
+      {
+        "word": "send",
+        "count": 158,
+        "percent": 10.095846645367413
+      },
+      {
+        "word": "sender",
+        "count": 154,
+        "percent": 9.840255591054312
+      },
+      {
+        "word": "administrator",
+        "count": 152,
+        "percent": 9.712460063897764
+      },
+      {
+        "word": "accounts",
+        "count": 150,
+        "percent": 9.584664536741213
+      },
+      {
+        "word": "banking",
+        "count": 150,
+        "percent": 9.584664536741213
+      },
+      {
+        "word": "member",
+        "count": 150,
+        "percent": 9.584664536741213
+      },
+      {
+        "word": "notification",
+        "count": 150,
+        "percent": 9.584664536741213
+      },
+      {
+        "word": "delivery",
+        "count": 149,
+        "percent": 9.52076677316294
+      },
+      {
+        "word": "login",
+        "count": 148,
+        "percent": 9.456869009584665
+      },
+      {
+        "word": "visit",
+        "count": 147,
+        "percent": 9.39297124600639
+      },
+      {
+        "word": "center",
+        "count": 145,
+        "percent": 9.26517571884984
+      },
+      {
+        "word": "within",
+        "count": 145,
+        "percent": 9.26517571884984
+      },
+      {
+        "word": "immediately",
+        "count": 143,
+        "percent": 9.13738019169329
+      },
+      {
+        "word": "notice",
+        "count": 142,
+        "percent": 9.073482428115016
+      },
+      {
+        "word": "important",
+        "count": 142,
+        "percent": 9.073482428115016
+      },
+      {
+        "word": "add",
+        "count": 140,
+        "percent": 8.945686900958465
+      },
+      {
+        "word": "bank",
+        "count": 140,
+        "percent": 8.945686900958465
+      },
+      {
+        "word": "avoid",
+        "count": 139,
+        "percent": 8.881789137380192
+      },
+      {
+        "word": "inc",
+        "count": 139,
+        "percent": 8.881789137380192
+      },
+      {
+        "word": "data",
+        "count": 138,
+        "percent": 8.817891373801917
+      },
+      {
+        "word": "web",
+        "count": 137,
+        "percent": 8.753993610223642
+      },
+      {
+        "word": "keep",
+        "count": 135,
+        "percent": 8.626198083067091
+      },
+      {
+        "word": "free",
+        "count": 135,
+        "percent": 8.626198083067091
+      },
+      {
+        "word": "page",
+        "count": 135,
+        "percent": 8.626198083067091
+      },
+      {
+        "word": "required",
+        "count": 135,
+        "percent": 8.626198083067091
+      },
+      {
+        "word": "download",
+        "count": 132,
+        "percent": 8.43450479233227
+      },
+      {
+        "word": "number",
+        "count": 132,
+        "percent": 8.43450479233227
+      },
+      {
+        "word": "error",
+        "count": 131,
+        "percent": 8.370607028753993
+      },
+      {
+        "word": "request",
+        "count": 128,
+        "percent": 8.178913738019169
+      },
+      {
+        "word": "ensure",
+        "count": 127,
+        "percent": 8.115015974440896
+      },
+      {
+        "word": "order",
+        "count": 125,
+        "percent": 7.987220447284344
+      },
+      {
+        "word": "log",
+        "count": 123,
+        "percent": 7.859424920127796
+      },
+      {
+        "word": "complete",
+        "count": 121,
+        "percent": 7.731629392971246
+      },
+      {
+        "word": "card",
+        "count": 121,
+        "percent": 7.731629392971246
+      },
+      {
+        "word": "incoming",
+        "count": 120,
+        "percent": 7.667731629392971
+      },
+      {
+        "word": "protect",
+        "count": 116,
+        "percent": 7.412140575079872
+      },
+      {
+        "word": "full",
+        "count": 116,
+        "percent": 7.412140575079872
+      },
+      {
+        "word": "credit",
+        "count": 115,
+        "percent": 7.348242811501597
+      },
+      {
+        "word": "business",
+        "count": 114,
+        "percent": 7.284345047923322
+      },
+      {
+        "word": "confidential",
+        "count": 114,
+        "percent": 7.284345047923322
+      },
+      {
+        "word": "financial",
+        "count": 114,
+        "percent": 7.284345047923322
+      },
+      {
+        "word": "personal",
+        "count": 113,
+        "percent": 7.220447284345048
+      },
+      {
+        "word": "spam",
+        "count": 112,
+        "percent": 7.156549520766774
+      },
+      {
+        "word": "intended",
+        "count": 110,
+        "percent": 7.0287539936102235
+      },
+      {
+        "word": "recipient",
+        "count": 110,
+        "percent": 7.0287539936102235
+      },
+      {
+        "word": "delete",
+        "count": 110,
+        "percent": 7.0287539936102235
+      },
+      {
+        "word": "review",
+        "count": 106,
+        "percent": 6.773162939297124
+      },
+      {
+        "word": "failure",
+        "count": 106,
+        "percent": 6.773162939297124
+      },
+      {
+        "word": "pending",
+        "count": 105,
+        "percent": 6.7092651757188495
+      },
+      {
+        "word": "registered",
+        "count": 103,
+        "percent": 6.581469648562301
+      },
+      {
+        "word": "button",
+        "count": 102,
+        "percent": 6.517571884984026
+      },
+      {
+        "word": "permanently",
+        "count": 99,
+        "percent": 6.325878594249201
+      },
+      {
+        "word": "policy",
+        "count": 99,
+        "percent": 6.325878594249201
+      },
+      {
+        "word": "safe",
+        "count": 98,
+        "percent": 6.261980830670927
+      },
+      {
+        "word": "process",
+        "count": 98,
+        "percent": 6.261980830670927
+      },
+      {
+        "word": "notify",
+        "count": 97,
+        "percent": 6.198083067092652
+      },
+      {
+        "word": "activity",
+        "count": 96,
+        "percent": 6.134185303514377
+      },
+      {
+        "word": "terms",
+        "count": 95,
+        "percent": 6.070287539936102
+      }
+    ],
+    "top_subject_words": [
+      {
+        "word": "account",
+        "count": 350,
+        "percent": 22.364217252396166
+      },
+      {
+        "word": "update",
+        "count": 155,
+        "percent": 9.904153354632587
+      },
+      {
+        "word": "email",
+        "count": 133,
+        "percent": 8.498402555910543
+      },
+      {
+        "word": "utf",
+        "count": 133,
+        "percent": 8.498402555910543
+      },
+      {
+        "word": "notification",
+        "count": 95,
+        "percent": 6.070287539936102
+      },
+      {
+        "word": "security",
+        "count": 82,
+        "percent": 5.23961661341853
+      },
+      {
+        "word": "mailbox",
+        "count": 79,
+        "percent": 5.047923322683706
+      },
+      {
+        "word": "alert",
+        "count": 71,
+        "percent": 4.536741214057508
+      },
+      {
+        "word": "information",
+        "count": 66,
+        "percent": 4.217252396166135
+      },
+      {
+        "word": "important",
+        "count": 66,
+        "percent": 4.217252396166135
+      },
+      {
+        "word": "payment",
+        "count": 64,
+        "percent": 4.0894568690095845
+      },
+      {
+        "word": "notice",
+        "count": 63,
+        "percent": 4.025559105431309
+      },
+      {
+        "word": "warning",
+        "count": 58,
+        "percent": 3.706070287539936
+      },
+      {
+        "word": "password",
+        "count": 55,
+        "percent": 3.5143769968051117
+      },
+      {
+        "word": "usaa",
+        "count": 55,
+        "percent": 3.5143769968051117
+      },
+      {
+        "word": "incoming",
+        "count": 51,
+        "percent": 3.258785942492013
+      },
+      {
+        "word": "pending",
+        "count": 50,
+        "percent": 3.1948881789137378
+      },
+      {
+        "word": "verification",
+        "count": 43,
+        "percent": 2.747603833865815
+      },
+      {
+        "word": "desk",
+        "count": 39,
+        "percent": 2.4920127795527156
+      },
+      {
+        "word": "messages",
+        "count": 39,
+        "percent": 2.4920127795527156
+      },
+      {
+        "word": "upgrade",
+        "count": 39,
+        "percent": 2.4920127795527156
+      },
+      {
+        "word": "required",
+        "count": 38,
+        "percent": 2.428115015974441
+      },
+      {
+        "word": "de",
+        "count": 37,
+        "percent": 2.364217252396166
+      },
+      {
+        "word": "activation",
+        "count": 37,
+        "percent": 2.364217252396166
+      },
+      {
+        "word": "urgent",
+        "count": 37,
+        "percent": 2.364217252396166
+      },
+      {
+        "word": "service",
+        "count": 34,
+        "percent": 2.1725239616613417
+      },
+      {
+        "word": "id",
+        "count": 33,
+        "percent": 2.1086261980830674
+      },
+      {
+        "word": "confirm",
+        "count": 31,
+        "percent": 1.9808306709265175
+      },
+      {
+        "word": "checking",
+        "count": 30,
+        "percent": 1.9169329073482428
+      },
+      {
+        "word": "activity",
+        "count": 30,
+        "percent": 1.9169329073482428
+      },
+      {
+        "word": "transfer",
+        "count": 29,
+        "percent": 1.853035143769968
+      },
+      {
+        "word": "verify",
+        "count": 28,
+        "percent": 1.7891373801916934
+      },
+      {
+        "word": "request",
+        "count": 28,
+        "percent": 1.7891373801916934
+      },
+      {
+        "word": "online",
+        "count": 28,
+        "percent": 1.7891373801916934
+      },
+      {
+        "word": "statement",
+        "count": 28,
+        "percent": 1.7891373801916934
+      },
+      {
+        "word": "delivery",
+        "count": 28,
+        "percent": 1.7891373801916934
+      },
+      {
+        "word": "final",
+        "count": 27,
+        "percent": 1.7252396166134185
+      },
+      {
+        "word": "action",
+        "count": 27,
+        "percent": 1.7252396166134185
+      },
+      {
+        "word": "bank",
+        "count": 27,
+        "percent": 1.7252396166134185
+      },
+      {
+        "word": "document",
+        "count": 26,
+        "percent": 1.6613418530351438
+      },
+      {
+        "word": "locked",
+        "count": 26,
+        "percent": 1.6613418530351438
+      },
+      {
+        "word": "savings",
+        "count": 26,
+        "percent": 1.6613418530351438
+      },
+      {
+        "word": "via",
+        "count": 25,
+        "percent": 1.5974440894568689
+      },
+      {
+        "word": "quota",
+        "count": 25,
+        "percent": 1.5974440894568689
+      },
+      {
+        "word": "billing",
+        "count": 25,
+        "percent": 1.5974440894568689
+      },
+      {
+        "word": "full",
+        "count": 23,
+        "percent": 1.4696485623003195
+      },
+      {
+        "word": "reminder",
+        "count": 22,
+        "percent": 1.4057507987220448
+      },
+      {
+        "word": "having",
+        "count": 22,
+        "percent": 1.4057507987220448
+      },
+      {
+        "word": "order",
+        "count": 22,
+        "percent": 1.4057507987220448
+      },
+      {
+        "word": "trouble",
+        "count": 22,
+        "percent": 1.4057507987220448
+      },
+      {
+        "word": "current",
+        "count": 21,
+        "percent": 1.34185303514377
+      },
+      {
+        "word": "confirmation",
+        "count": 21,
+        "percent": 1.34185303514377
+      },
+      {
+        "word": "unusual",
+        "count": 21,
+        "percent": 1.34185303514377
+      },
+      {
+        "word": "storage",
+        "count": 20,
+        "percent": 1.2779552715654952
+      },
+      {
+        "word": "emails",
+        "count": 20,
+        "percent": 1.2779552715654952
+      },
+      {
+        "word": "mails",
+        "count": 20,
+        "percent": 1.2779552715654952
+      },
+      {
+        "word": "invoice",
+        "count": 20,
+        "percent": 1.2779552715654952
+      },
+      {
+        "word": "files",
+        "count": 19,
+        "percent": 1.2140575079872205
+      },
+      {
+        "word": "access",
+        "count": 19,
+        "percent": 1.2140575079872205
+      },
+      {
+        "word": "review",
+        "count": 19,
+        "percent": 1.2140575079872205
+      },
+      {
+        "word": "last",
+        "count": 18,
+        "percent": 1.1501597444089458
+      },
+      {
+        "word": "server",
+        "count": 17,
+        "percent": 1.0862619808306708
+      },
+      {
+        "word": "paypal",
+        "count": 17,
+        "percent": 1.0862619808306708
+      },
+      {
+        "word": "wetransfer",
+        "count": 17,
+        "percent": 1.0862619808306708
+      },
+      {
+        "word": "termination",
+        "count": 16,
+        "percent": 1.0223642172523961
+      },
+      {
+        "word": "sign",
+        "count": 15,
+        "percent": 0.9584664536741214
+      },
+      {
+        "word": "blocked",
+        "count": 15,
+        "percent": 0.9584664536741214
+      },
+      {
+        "word": "detected",
+        "count": 15,
+        "percent": 0.9584664536741214
+      },
+      {
+        "word": "suspension",
+        "count": 14,
+        "percent": 0.8945686900958467
+      },
+      {
+        "word": "expire",
+        "count": 14,
+        "percent": 0.8945686900958467
+      },
+      {
+        "word": "dhl",
+        "count": 14,
+        "percent": 0.8945686900958467
+      },
+      {
+        "word": "parcel",
+        "count": 14,
+        "percent": 0.8945686900958467
+      },
+      {
+        "word": "card",
+        "count": 14,
+        "percent": 0.8945686900958467
+      },
+      {
+        "word": "transaction",
+        "count": 13,
+        "percent": 0.8306709265175719
+      },
+      {
+        "word": "limited",
+        "count": 13,
+        "percent": 0.8306709265175719
+      },
+      {
+        "word": "error",
+        "count": 13,
+        "percent": 0.8306709265175719
+      },
+      {
+        "word": "exceeded",
+        "count": 13,
+        "percent": 0.8306709265175719
+      },
+      {
+        "word": "suspicious",
+        "count": 12,
+        "percent": 0.7667731629392971
+      },
+      {
+        "word": "outlook",
+        "count": 12,
+        "percent": 0.7667731629392971
+      },
+      {
+        "word": "shutdown",
+        "count": 12,
+        "percent": 0.7667731629392971
+      },
+      {
+        "word": "package",
+        "count": 12,
+        "percent": 0.7667731629392971
+      },
+      {
+        "word": "apple",
+        "count": 12,
+        "percent": 0.7667731629392971
+      },
+      {
+        "word": "administrator",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "address",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "validate",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "failed",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "deactivation",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "suspended",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "check",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "fargo",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "wells",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "delivered",
+        "count": 11,
+        "percent": 0.7028753993610224
+      },
+      {
+        "word": "attention",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "undelivered",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "webmail",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "report",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "express",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "avoid",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "case",
+        "count": 10,
+        "percent": 0.6389776357827476
+      },
+      {
+        "word": "details",
+        "count": 10,
+        "percent": 0.6389776357827476
+      }
+    ]
+  }
+}

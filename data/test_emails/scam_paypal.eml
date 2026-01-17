@@ -1,0 +1,24 @@
+From: "PayPal Security" <security@paypal-verify-account.tk>
+To: "Victim" <target@email.com>
+Subject: URGENT: Verify your account NOW
+Date: Thu, 16 Jan 2026 14:22:00 +0000
+Message-ID: <phish-paypal-999@malicious.com>
+Reply-To: <collect@attacker-server.ru>
+Return-Path: <spam@randomdomain.xyz>
+Authentication-Results: mx.email.com; spf=fail; dkim=fail; dmarc=fail
+
+DEAR VALUED CUSTOMER,
+
+YOUR PAYPAL ACCOUNT HAS BEEN TEMPORARILY SUSPENDED DUE TO SUSPICIOUS ACTIVITY!!!
+
+TO RESTORE FULL ACCESS, YOU MUST VERIFY YOUR IDENTITY IMMEDIATELY BY CLICKING THE LINK BELOW:
+
+>>> http://paypal-security-verify.tk/login.php?session=x829dj <<<
+
+FAILURE TO VERIFY WITHIN 24 HOURS WILL RESULT IN PERMANENT ACCOUNT SUSPENSION AND LOSS OF ALL FUNDS.
+
+THIS IS YOUR FINAL WARNING!
+
+Sincerely,
+PayPal Security Team
+Winner of Best Security Award 2025
