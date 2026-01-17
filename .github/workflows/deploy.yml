@@ -5,46 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
       - name: Deploy to Ubuntu Server
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -52,31 +17,64 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # Navigate to application directory
-            cd /opt/phishing-scanner || exit 1
+            set -e
             
-            # Login to GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Set deployment path (use secret or default)
+            DEPLOY_PATH="${{ secrets.SERVER_DEPLOY_PATH }}"
+            if [ -z "$DEPLOY_PATH" ]; then
+              DEPLOY_PATH="/opt/phishing-scanner"
+            fi
             
-            # Pull latest image
-            docker-compose pull
+            echo "🚀 Starting deployment to $DEPLOY_PATH"
             
-            # Restart containers
-            docker-compose down
-            docker-compose up -d
+            # Create directory if it doesn't exist
+            mkdir -p "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
+            
+            # Clone or pull latest code
+            if [ -d ".git" ]; then
+              echo "📦 Pulling latest changes..."
+              git fetch origin
+              git reset --hard origin/main
+            else
+              echo "📦 Cloning repository..."
+              git clone https://github.com/${{ github.repository }}.git .
+            fi
+            
+            # Stop existing containers
+            echo "🛑 Stopping existing containers..."
+            docker compose down || true
+            
+            # Build images directly on server
+            echo "🔨 Building Docker images..."
+            docker compose build --no-cache
+            
+            # Start containers
+            echo "▶️  Starting containers..."
+            docker compose up -d
             
             # Clean up old images
+            echo "🧹 Cleaning up old images..."
             docker image prune -af
             
-            # Wait for health check
+            # Wait for services to be ready
+            echo "⏳ Waiting for services to start..."
             sleep 10
             
             # Verify deployment
-            curl -f http://localhost/health || exit 1
+            echo "✅ Verifying deployment..."
+            docker compose ps
             
-            echo "Deployment successful!"
+            # Check if app is responding
+            if curl -f http://localhost:8080 > /dev/null 2>&1; then
+              echo "✅ Deployment successful! App is responding."
+            else
+              echo "❌ Warning: App is not responding on port 8080"
+              docker compose logs app
+              exit 1
+            fi
 
       - name: Notify on failure
         if: failure()
         run: |
-          echo "Deployment failed! Check the logs above for details."
+          echo "❌ Deployment failed! Check the logs above for details."
