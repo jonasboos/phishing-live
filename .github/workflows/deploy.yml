@@ -19,10 +19,10 @@ jobs:
           script: |
             set -e
             
-            # Set deployment path (use secret or default)
+            # Set deployment path (use secret or default to home directory)
             DEPLOY_PATH="${{ secrets.SERVER_DEPLOY_PATH }}"
             if [ -z "$DEPLOY_PATH" ]; then
-              DEPLOY_PATH="/opt/phishing-scanner"
+              DEPLOY_PATH="$HOME/phishing-scanner"
             fi
             
             echo "🚀 Starting deployment to $DEPLOY_PATH"
