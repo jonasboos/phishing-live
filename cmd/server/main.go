@@ -177,6 +177,10 @@ func main() {
 		}
 	}()
 
+	// Serve static files
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("templates/index.html")
 		if err != nil {
@@ -331,7 +335,9 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		OwnEmails:  ownEmails,
 		Analysis:   &result,
 	}
-	t.Execute(w, data)
+	if err := t.Execute(w, data); err != nil {
+		log.Printf("Template execution error: %v", err)
+	}
 }
 
 func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResult {

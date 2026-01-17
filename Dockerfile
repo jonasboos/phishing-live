@@ -32,6 +32,9 @@ COPY --from=builder /app/data ./data
 # Copy templates
 COPY --from=builder /app/cmd/server/templates ./templates
 
+# Copy static assets (CSS, etc.)
+COPY --from=builder /app/cmd/server/static ./static
+
 # Expose port
 EXPOSE 8080
 
