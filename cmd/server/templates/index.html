@@ -182,7 +182,11 @@
                         </tr>
                     </table>
                 </div>
+                {{if and .Analysis.HTMLBody (not .IsTestFile)}}
                 <iframe class="preview-iframe" srcdoc="{{.Analysis.HTMLBody}}" sandbox="allow-same-origin"></iframe>
+                {{else}}
+                <div class="preview-body">{{.Analysis.EmailBody}}</div>
+                {{end}}
             </div>
         </main>
         {{else}}

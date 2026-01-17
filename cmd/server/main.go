@@ -117,6 +117,7 @@ type PageData struct {
 	TestEmails []string
 	OwnEmails  []string
 	Analysis   *AnalysisResult
+	IsTestFile bool
 }
 
 // DisposableResponse structure for API
@@ -205,6 +206,7 @@ func main() {
 			TestEmails: getTestEmails(),
 			OwnEmails:  ownEmails,
 			Analysis:   nil,
+			IsTestFile: false,
 		}
 		t.Execute(w, data)
 	})
@@ -221,6 +223,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	var bodyString string
 	var filename string
 	var err error
+	isTestFile := false
 
 	if strings.HasPrefix(testFile, "memory:") {
 		// Load from memory
@@ -258,8 +261,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	} else if testFile != "" {
 		// Load from test emails
 		filename = testFile
-		// Load from test emails
-		filename = testFile
+		isTestFile = true
 		dir := resolvePath("data/test_emails")
 		path := filepath.Join(dir, testFile)
 
@@ -341,6 +343,7 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		TestEmails: getTestEmails(),
 		OwnEmails:  ownEmails,
 		Analysis:   &result,
+		IsTestFile: isTestFile,
 	}
 	if err := t.Execute(w, data); err != nil {
 		log.Printf("Template execution error: %v", err)
@@ -692,38 +695,69 @@ func extractEmailBody(msg *mail.Message) string {
 	contentType := msg.Header.Get("Content-Type")
 	mediaType, params, err := mime.ParseMediaType(contentType)
 	if err != nil {
-		// Fallback to plain reading if content-type parse fails
 		b, _ := io.ReadAll(msg.Body)
 		return string(b)
 	}
 
 	if strings.HasPrefix(mediaType, "multipart/") {
-		mr := multipart.NewReader(msg.Body, params["boundary"])
-		for {
-			p, err := mr.NextPart()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				break
-			}
+		return parseMultipart(msg.Body, params["boundary"])
+	}
 
-			// Prefer html then plain
-			partType, _, _ := mime.ParseMediaType(p.Header.Get("Content-Type"))
-			if partType == "text/html" {
-				b, _ := io.ReadAll(p)
-				return decodeContent(string(b), p.Header.Get("Content-Transfer-Encoding"))
+	// Not multipart
+	b, _ := io.ReadAll(msg.Body)
+	return decodeContent(string(b), msg.Header.Get("Content-Transfer-Encoding"))
+}
+
+func parseMultipart(r io.Reader, boundary string) string {
+	mr := multipart.NewReader(r, boundary)
+	var htmlBody, textBody string
+
+	for {
+		p, err := mr.NextPart()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			break // Skip malformed parts
+		}
+
+		// Get types
+		contentType := p.Header.Get("Content-Type")
+		mediaType, params, _ := mime.ParseMediaType(contentType)
+		cte := p.Header.Get("Content-Transfer-Encoding")
+
+		if strings.HasPrefix(mediaType, "multipart/") {
+			// RECURSIVE CALL
+			subContent := parseMultipart(p, params["boundary"])
+			// Heuristic: If we found something in the sub-part, use it.
+			// Prefer HTML from sub-parts if it looks like HTML
+			if strings.Contains(strings.ToLower(subContent), "<html") ||
+				strings.Contains(strings.ToLower(subContent), "<div") ||
+				strings.Contains(strings.ToLower(subContent), "<body") {
+				htmlBody = subContent
+			} else {
+				// Keep as text fallback if we don't have text yet, or just overwrite?
+				// In multipart/alternative, we usually want the last one.
+				if textBody == "" {
+					textBody = subContent
+				}
 			}
-			if partType == "text/plain" {
-				b, _ := io.ReadAll(p)
-				return decodeContent(string(b), p.Header.Get("Content-Transfer-Encoding"))
-			}
+		} else if mediaType == "text/html" {
+			b, _ := io.ReadAll(p)
+			htmlBody = decodeContent(string(b), cte)
+		} else if mediaType == "text/plain" {
+			b, _ := io.ReadAll(p)
+			// Only set text body if we haven't found a text body yet
+			// (OR should we prioritize the last one for alternative? Let's keep first for simple text)
+			// Actually RFC says last is best for alternative.
+			textBody = decodeContent(string(b), cte)
 		}
 	}
 
-	// Not multipart, read body directly
-	b, _ := io.ReadAll(msg.Body)
-	return decodeContent(string(b), msg.Header.Get("Content-Transfer-Encoding"))
+	if htmlBody != "" {
+		return htmlBody
+	}
+	return textBody
 }
 
 func decodeContent(content string, transferEncoding string) string {
