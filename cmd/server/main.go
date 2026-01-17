@@ -3,9 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"html/template"
 	"io"
 	"log"
+	"mime"
+	"mime/multipart"
+	"mime/quotedprintable"
 	"net"
 	"net/http"
 	"net/mail"
@@ -80,15 +84,16 @@ type RiskFactors struct {
 }
 
 type ScoreBreakdown struct {
-	BaseScore         float64 `json:"base_score"`
-	AuthFailPenalty   float64 `json:"auth_fail_penalty"`
-	AuthPassBonus     float64 `json:"auth_pass_bonus"`
-	MismatchPenalty   float64 `json:"mismatch_penalty"`
-	KeywordPenalty    float64 `json:"keyword_penalty"`
-	NoMXPenalty       float64 `json:"no_mx_penalty"`
-	DisposablePenalty float64 `json:"disposable_penalty"`
-	LinguisticPenalty float64 `json:"linguistic_penalty"`
-	TotalScore        float64 `json:"total_score"`
+	BaseScore                float64 `json:"base_score"`
+	AuthFailPenalty          float64 `json:"auth_fail_penalty"`
+	AuthPassBonus            float64 `json:"auth_pass_bonus"`
+	MismatchPenalty          float64 `json:"mismatch_penalty"`
+	KeywordPenalty           float64 `json:"keyword_penalty"`
+	NoMXPenalty              float64 `json:"no_mx_penalty"`
+	DisposablePenalty        float64 `json:"disposable_penalty"`
+	LinguisticPenalty        float64 `json:"linguistic_penalty"`
+	SubjectLinguisticPenalty float64 `json:"subject_linguistic_penalty"`
+	TotalScore               float64 `json:"total_score"`
 }
 
 type AnalysisResult struct {
@@ -98,7 +103,9 @@ type AnalysisResult struct {
 	TechScore       float64             `json:"tech_score"`
 	BodyScore       float64             `json:"body_score"`
 	SubjectScore    float64             `json:"subject_score"`
-	EmailBody       string              `json:"email_body"`
+	EmailBody       template.HTML       `json:"email_body"` // Highlighted text version (optional/fallback)
+	HTMLBody        template.HTML       `json:"html_body"`  // Authentic HTML for iframe
+	Headers         map[string]string   `json:"headers"`
 	RiskFactors     RiskFactors         `json:"risk_factors"`
 	ScoreBreakdown  ScoreBreakdown      `json:"calculation_details"`
 	BodyTriggers    []LinguisticTrigger `json:"body_triggers"`
@@ -245,8 +252,8 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Printf("DEBUG: Successfully parsed email from memory. FromHeader: '%s'\n", msg.Header.Get("From"))
-		bodyBytes, _ := io.ReadAll(msg.Body)
-		bodyString = string(bodyBytes)
+		fmt.Printf("DEBUG: Successfully parsed email from memory. FromHeader: '%s'\n", msg.Header.Get("From"))
+		bodyString = extractEmailBody(msg)
 
 	} else if testFile != "" {
 		// Load from test emails
@@ -278,8 +285,8 @@ func handleAnalyze(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// mail.ReadMessage parses headers and leaves body in msg.Body
-		bodyBytes, _ := io.ReadAll(msg.Body)
-		bodyString = string(bodyBytes)
+		// mail.ReadMessage parses headers and leaves body in msg.Body
+		bodyString = extractEmailBody(msg)
 
 	} else {
 		// Handle Upload
@@ -378,8 +385,8 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 		breakdown.BaseScore += 10
 	}
 
-	from := msg.Header.Get("From")
-	returnPath := msg.Header.Get("Return-Path")
+	from := decodeHeader(msg.Header.Get("From"))
+	returnPath := decodeHeader(msg.Header.Get("Return-Path"))
 	fromAddr := extractEmail(from)
 	returnPathAddr := extractEmail(returnPath)
 	fromDomain := getDomain(fromAddr)
@@ -393,7 +400,7 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 	}
 
 	// Check Reply-To mismatch
-	replyTo := msg.Header.Get("Reply-To")
+	replyTo := decodeHeader(msg.Header.Get("Reply-To"))
 	if replyTo != "" {
 		replyToAddr := extractEmail(replyTo)
 		replyToDomain := getDomain(replyToAddr)
@@ -403,7 +410,9 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 		}
 	}
 
-	subject := msg.Header.Get("Subject")
+	subjectHeader := msg.Header.Get("Subject")
+	subject := decodeHeader(subjectHeader)
+	fmt.Printf("DEBUG: Subject Raw: '%s', Decoded: '%s'\n", subjectHeader, subject)
 	suspiciousKeywords := []string{"urgent", "verify", "account", "suspended", "winner", "lottery", "password", "profit", "margin"}
 	for _, kw := range suspiciousKeywords {
 		if strings.Contains(strings.ToLower(subject), kw) {
@@ -562,7 +571,7 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 					Text:        text,
 					Explanation: explanation,
 				})
-				breakdown.LinguisticPenalty += stat.Percent / 3.0
+				breakdown.SubjectLinguisticPenalty += stat.Percent / 3.0
 			}
 		}
 	}
@@ -611,7 +620,7 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 	bodyScore := (bodyRaw / 50.0) * 100
 
 	// Subject/Keyword Score (max 30 points -> scale to 100%)
-	subjectRaw := breakdown.KeywordPenalty
+	subjectRaw := breakdown.KeywordPenalty + breakdown.SubjectLinguisticPenalty
 	if subjectRaw > 30 {
 		subjectRaw = 30
 	}
@@ -634,6 +643,17 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 		}
 	}
 
+	// Highlight keywords in clean text for scoring/debug (and potentially text view)
+	// We still calculate this primarily for the scoring logic which uses 'cleanText' derived inside highlightKeywords?
+	// Actually highlightKeywords calls stripHTML.
+	// We should probably stripHTML once for analysis, and highlight separately?
+	// For now, keeping existing flow for 'EmailBody' (text version), but adding HTMLBody.
+
+	// Create authentic HTML preview
+	safeHTML := sanitizeHTMLForPreview(body)
+
+	highlightedBody := highlightKeywords(body, riskFactors.Suspiciouskeywords)
+
 	return AnalysisResult{
 		FileName:        filename,
 		ScamProbability: total,
@@ -641,12 +661,142 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 		TechScore:       techScore,
 		BodyScore:       bodyScore,
 		SubjectScore:    subjectScore,
-		EmailBody:       body,
+		EmailBody:       highlightedBody,
+		HTMLBody:        template.HTML(safeHTML),
+		Headers: map[string]string{
+			"From":    decodeHeader(msg.Header.Get("From")),
+			"To":      decodeHeader(msg.Header.Get("To")),
+			"Subject": decodeHeader(msg.Header.Get("Subject")),
+			"Date":    msg.Header.Get("Date"),
+		},
 		RiskFactors:     riskFactors,
 		ScoreBreakdown:  breakdown,
 		BodyTriggers:    bodyTriggers,
 		SubjectTriggers: subjectTriggers,
 	}
+}
+
+func sanitizeHTMLForPreview(input string) string {
+	// Remove <script> tags and their content
+	reScript := regexp.MustCompile(`(?si)<script[^>]*>.*?</script>`)
+	text := reScript.ReplaceAllString(input, "")
+
+	// Remove on* events (simple regex, not perfect but helps)
+	reEvents := regexp.MustCompile(`(?i) on\w+="[^"]*"`)
+	text = reEvents.ReplaceAllString(text, "")
+
+	return text
+}
+
+func extractEmailBody(msg *mail.Message) string {
+	contentType := msg.Header.Get("Content-Type")
+	mediaType, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		// Fallback to plain reading if content-type parse fails
+		b, _ := io.ReadAll(msg.Body)
+		return string(b)
+	}
+
+	if strings.HasPrefix(mediaType, "multipart/") {
+		mr := multipart.NewReader(msg.Body, params["boundary"])
+		for {
+			p, err := mr.NextPart()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				break
+			}
+
+			// Prefer html then plain
+			partType, _, _ := mime.ParseMediaType(p.Header.Get("Content-Type"))
+			if partType == "text/html" {
+				b, _ := io.ReadAll(p)
+				return decodeContent(string(b), p.Header.Get("Content-Transfer-Encoding"))
+			}
+			if partType == "text/plain" {
+				b, _ := io.ReadAll(p)
+				return decodeContent(string(b), p.Header.Get("Content-Transfer-Encoding"))
+			}
+		}
+	}
+
+	// Not multipart, read body directly
+	b, _ := io.ReadAll(msg.Body)
+	return decodeContent(string(b), msg.Header.Get("Content-Transfer-Encoding"))
+}
+
+func decodeContent(content string, transferEncoding string) string {
+	switch strings.ToLower(transferEncoding) {
+	case "quoted-printable":
+		r := quotedprintable.NewReader(strings.NewReader(content))
+		b, _ := io.ReadAll(r)
+		return string(b)
+	// Base64 decoding could be added here if needed
+	default:
+		return content
+	}
+}
+
+func highlightKeywords(body string, suspiciousKeywords []string) template.HTML {
+	// Strip HTML first to get clean text
+	cleanText := stripHTML(body)
+
+	// Simple HTML escaping for safety before highlighting
+	safeBody := html.EscapeString(cleanText)
+
+	// Highlight critical phishing keywords (red)
+	for _, kw := range suspiciousKeywords {
+		re := regexp.MustCompile(`(?i)\b` + regexp.QuoteMeta(kw) + `\b`)
+		safeBody = re.ReplaceAllString(safeBody, `<span class="highlight-scam">$0</span>`)
+	}
+
+	// Highlight aggressive/urgency words (yellow/orange) - hardcoded list for now or reuse globalStats
+	urgencyWords := []string{"immediately", "urgent", "suspend", "limit", "verify", "action"}
+	for _, kw := range urgencyWords {
+		re := regexp.MustCompile(`(?i)\b` + regexp.QuoteMeta(kw) + `\b`)
+		safeBody = re.ReplaceAllString(safeBody, `<span class="highlight-urgent">$0</span>`)
+	}
+
+	// Convert newlines to breaks for plain text visualization
+	safeBody = strings.ReplaceAll(safeBody, "\n", "<br>")
+
+	return template.HTML(safeBody)
+}
+
+func stripHTML(input string) string {
+	// 0. Remove script and style blocks entirely (content included)
+	// (?s) enables dot matching newlines
+	reScriptStyle := regexp.MustCompile(`(?si)<(script|style)[^>]*>.*?</(script|style)>`)
+	text := reScriptStyle.ReplaceAllString(input, "")
+
+	// 1. Replace block tags with newlines to preserve structure
+	// Replace <br>, <p>, <div>, </div>, </tr> with newlines
+	reBlock := regexp.MustCompile(`(?i)<(br|p|div|/div|tr|/tr)[^>]*>`)
+	text = reBlock.ReplaceAllString(text, "\n")
+
+	// 2. Remove all other tags
+	reTags := regexp.MustCompile(`<[^>]*>`)
+	text = reTags.ReplaceAllString(text, "")
+
+	// 3. Unescape HTML entities (&nbsp;, &amp;, etc.)
+	text = html.UnescapeString(text)
+
+	// 4. Collapse multiple newlines/spaces
+	reSpace := regexp.MustCompile(`\n\s*\n`)
+	text = reSpace.ReplaceAllString(text, "\n\n")
+
+	return strings.TrimSpace(text)
+}
+
+func decodeHeader(header string) string {
+	dec := new(mime.WordDecoder)
+	decoded, err := dec.DecodeHeader(header)
+	if err != nil {
+		// If decoding fails, return original
+		return header
+	}
+	return decoded
 }
 
 // Helpers

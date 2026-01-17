@@ -163,10 +163,26 @@
             <!-- Right: Preview -->
             <div class="preview-panel">
                 <div class="preview-header">
-                    <div class="preview-meta">Von: {{.Analysis.RiskFactors.Domain}}</div>
-                    <div class="preview-subject">Vorschau der E-Mail</div>
+                    <table class="preview-table">
+                        <tr>
+                            <td class="label">Betreff:</td>
+                            <td class="preview-subject">{{.Analysis.Headers.Subject}}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Von:</td>
+                            <td>{{.Analysis.Headers.From}}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">An:</td>
+                            <td>{{.Analysis.Headers.To}}</td>
+                        </tr>
+                        <tr>
+                            <td class="label">Datum:</td>
+                            <td>{{.Analysis.Headers.Date}}</td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="preview-body">{{.Analysis.EmailBody}}</div>
+                <iframe class="preview-iframe" srcdoc="{{.Analysis.HTMLBody}}" sandbox="allow-same-origin"></iframe>
             </div>
         </main>
         {{else}}
@@ -270,6 +286,82 @@
                     }
                 });
             });
+
+            // Tooltip Logic
+            const tooltipEl = document.createElement('div');
+            tooltipEl.className = 'global-tooltip';
+            tooltipEl.style.display = 'none';
+            document.body.appendChild(tooltipEl);
+
+            let activeTooltip = null;
+
+            function initTooltips() {
+                document.querySelectorAll('.tooltip').forEach(el => {
+                    // Prevent duplicate listeners if re-initialized
+                    if (el.dataset.hasTooltip) return;
+                    el.dataset.hasTooltip = "true";
+
+                    el.addEventListener('mouseenter', (e) => {
+                        const text = el.getAttribute('data-tooltip');
+                        if (!text) return;
+
+                        tooltipEl.textContent = text;
+                        tooltipEl.style.display = 'block';
+                        activeTooltip = el;
+                        updatePosition(e);
+                    });
+
+                    el.addEventListener('mousemove', (e) => {
+                        if (activeTooltip === el) {
+                            updatePosition(e);
+                        }
+                    });
+
+                    el.addEventListener('mouseleave', () => {
+                        tooltipEl.style.display = 'none';
+                        activeTooltip = null;
+                    });
+                });
+            }
+
+            // Init initially
+            initTooltips();
+
+            function updatePosition(e) {
+                const offset = 15;
+                let left = e.pageX + offset;
+                let top = e.pageY + offset;
+
+                // Boundary check (right edge)
+                if (left + tooltipEl.offsetWidth > window.innerWidth) {
+                    left = e.pageX - tooltipEl.offsetWidth - offset;
+                }
+
+                // Boundary check (bottom edge)
+                if (top + tooltipEl.offsetHeight > window.innerHeight) {
+                    top = e.pageY - tooltipEl.offsetHeight - offset;
+                }
+
+                tooltipEl.style.left = left + 'px';
+                tooltipEl.style.top = top + 'px';
+            }
+
+            // Re-init tooltips after dynamic content load
+            const originalHandleResponse = handleResponse;
+            handleResponse = async function (response) {
+                if (!response.ok) {
+                    alert("Fehler bei der Analyse: " + response.statusText);
+                    loader.style.display = 'none';
+                    return;
+                }
+                const html = await response.text();
+                document.open();
+                document.write(html);
+                document.close();
+                // Note: document.write blows away the script context, so this hook is actually tricky.
+                // However, the new HTML will contain the script tag again, running DOMContentLoaded again.
+                // So simple init is enough.
+            };
         });
     </script>
 </body>
