@@ -1,0 +1,51 @@
+PHISHING ANALYSE TRAINER - TECHNISCHE DOKUMENTATION
+===================================================
+Datei: cmd/trainer/main.go
+
+1. ÜBERSICHT
+------------
+Der Trainer ist ein Offline-Werkzeug (CLI), das große Datensätze von E-Mails analysiert, um statistische Modelle ("Ground Truth") für die Phishing-Erkennung zu erstellen. Das Ergebnis ist eine JSON-Datei, die vom Server verwendet wird.
+
+2. WORKFLOW
+-----------
+Der Trainer folgt einem ETL-Prozess (Extract, Transform, Load):
+
+A. Input (Extract)
+   - Akzeptiert CSV-Dateien (z.B. Nazario Phishing Corpus) oder JSON-Dumps.
+   - CLI-Flag: `-file <path>` (Standard: `../../data/Nazario.csv`).
+   - Erwartet Spalten für Body, Subject und Label (Safe/Scam).
+
+B. Verarbeitung (Transform)
+   Iteriert über jede E-Mail und extrahiert linguistische Features:
+
+   1. **Preprocessing**:
+      - Lädt und cachet ein englisches Wörterbuch (`data/words_alpha.txt`).
+      - Filtert Stopwords ("the", "is", "at") und irrelevante Füllwörter ("dear", "regards").
+      - Bereinigt HTML-Tags aus dem Body.
+
+   2. **Feature Extraction**:
+      - **Word Frequency**: Zählt Vorkommen jedes Wortes im gesamten Datensatz.
+      - **Preprocessing**: Bereinigung von HTML, Stoppwörtern und nicht-relevanten Artefakten.
+
+   3. **Aggregation**:
+      - Identifiziert die "Top Words" basierend auf ihrer Häufigkeit im gesamten Phishing-Datensatz.
+
+C. Output (Load)
+   - Generiert `data/linguistic_stats.json`.
+   - Struktur:
+     - `top_body_words`: Häufigste Wörter im Body (Phishing-Indikatoren).
+     - `top_subject_words`: Häufigste Wörter im Betreff.
+
+3. METHODIK & ALGORITHMEN
+-------------------------
+- **Word Filtering**:
+  - Wörter werden gegen eine "Stop Words" Liste und eine "Phishing Irrelevant" Liste (z.B. "dear", "hello") geprüft.
+  - Nur Wörter, die im englischen Wörterbuch existieren, werden gezählt.
+  - Dokumenten-Frequenz (in wie vielen Mails kommt das Wort vor) wird statt absoluter Anzahl genutzt, um Bias durch lange Mails zu vermeiden.
+
+4. NUTZUNG IM SERVER
+--------------------
+Die generierte `linguistic_stats.json` ist die Wissensbasis des Servers. Wenn der Server eine E-Mail prüft:
+1. Extrahiert er die Wörter.
+2. Prüft, ob diese Wörter in den `TopBodyWords` der `scam_stats` vorkommen.
+3. Wenn ja, erhöht sich der "Linguistic Penalty" Score.

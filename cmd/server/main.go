@@ -20,6 +20,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/abadojack/whatlanggo"
+	"github.com/bregydoc/gtranslate"
 )
 
 // --- Structs for Linguistic Data ---
@@ -39,13 +42,8 @@ type LinguisticStats struct {
 	TopSubjectWords   []WordFreq `json:"top_subject_words"`
 }
 
-type LinguisticReport struct {
-	SafeStats LinguisticStats `json:"safe_stats"`
-	ScamStats LinguisticStats `json:"scam_stats"`
-}
-
 // Global stats
-var globalStats LinguisticReport
+var globalStats LinguisticStats
 
 // In-memory store for uploaded files
 var (
@@ -98,6 +96,8 @@ type ScoreBreakdown struct {
 
 type AnalysisResult struct {
 	FileName        string              `json:"file_name"`
+	DetectedLang    string              `json:"detected_lang"`
+	TranslatedBody  string              `json:"translated_body"`
 	ScamProbability float64             `json:"scam_probability_percent"`
 	SafeProbability float64             `json:"safe_probability_percent"`
 	TechScore       float64             `json:"tech_score"`
@@ -473,7 +473,34 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 	// --- 2. Linguistic Analysis (Body) ---
 
 	cleanBody := regexp.MustCompile(`<[^>]*>`).ReplaceAllString(body, " ")
-	lowerBody := strings.ToLower(cleanBody)
+
+	// Language Detection
+	info := whatlanggo.Detect(cleanBody)
+	detectedLang := info.Lang.String()
+	fmt.Printf("DEBUG: Detected Language: %s (Confidence: %.2f)\n", detectedLang, info.Confidence)
+
+	analysisText := cleanBody
+	var translatedBody string
+
+	// Automatic Translation if not English (and text is long enough)
+	if info.Lang != whatlanggo.Eng && len(cleanBody) > 50 {
+		fmt.Println("DEBUG: Non-English email detected. Attempting translation...")
+		translated, err := gtranslate.TranslateWithParams(cleanBody, gtranslate.TranslationParams{
+			From: info.Lang.Iso6391(),
+			To:   "en",
+		})
+		if err == nil {
+			fmt.Println("DEBUG: Translation successful.")
+			translatedBody = translated
+			analysisText = translated // Use translated text for analysis
+		} else {
+			fmt.Printf("DEBUG: Translation failed: %v\n", err)
+		}
+	} else {
+		detectedLang = "English" // Normalize
+	}
+
+	lowerBody := strings.ToLower(analysisText)
 	// Use Unicode-aware pattern to match German umlauts and other letters
 	words := regexp.MustCompile(`[\p{L}]{3,}`).FindAllString(lowerBody, -1)
 
@@ -485,14 +512,6 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 	wordSet := make(map[string]bool)
 	for _, w := range words {
 		wordSet[w] = true
-	}
-
-	// Comparison Logic: Scam vs Safe stats
-	safeWordMap := make(map[string]float64)
-	if len(globalStats.SafeStats.TopBodyWords) > 0 {
-		for _, w := range globalStats.SafeStats.TopBodyWords {
-			safeWordMap[w.Word] = w.Percent
-		}
 	}
 
 	// Define Ignored Words (Stop Words)
@@ -517,9 +536,9 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 		"reserved":    true,
 	}
 
-	if len(globalStats.ScamStats.TopBodyWords) > 0 {
-		matchCount := 0
-		for _, stat := range globalStats.ScamStats.TopBodyWords {
+	// Comparison Logic: Check against Phishing Stats
+	if len(globalStats.TopBodyWords) > 0 {
+		for _, stat := range globalStats.TopBodyWords {
 			// Lowered threshold to 7% to catch more relevant words
 			if stat.Percent > 7.0 && wordSet[stat.Word] {
 				if ignoredWords[stat.Word] {
@@ -527,8 +546,6 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 				}
 
 				// Check if word appears in scam emails
-				matchCount++
-				fmt.Printf("DEBUG: Matched word '%s' (%.0f%% in scams)\n", stat.Word, stat.Percent)
 				text := fmt.Sprintf("Enthält '%s'", stat.Word)
 				explanation := fmt.Sprintf("Kommt in %.0f%% bekannter Phishing-Mails vor.", stat.Percent)
 
@@ -544,7 +561,6 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 				breakdown.LinguisticPenalty += penalty
 			}
 		}
-		fmt.Printf("DEBUG: Found %d linguistic matches in body\n", matchCount)
 	}
 
 	// --- 3. Subject Linguistic Analysis ---
@@ -561,8 +577,8 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 		"utf": true, // UTF-8 encoding artifacts
 	}
 
-	if len(globalStats.ScamStats.TopSubjectWords) > 0 {
-		for _, stat := range globalStats.ScamStats.TopSubjectWords {
+	if len(globalStats.TopSubjectWords) > 0 {
+		for _, stat := range globalStats.TopSubjectWords {
 			if stat.Percent > 5.0 && subjectWordSet[stat.Word] {
 				// Skip ignored technical words
 				if ignoredSubjectWords[stat.Word] {
@@ -659,6 +675,8 @@ func analyzeEmail(filename string, msg *mail.Message, body string) AnalysisResul
 
 	return AnalysisResult{
 		FileName:        filename,
+		DetectedLang:    detectedLang,
+		TranslatedBody:  translatedBody,
 		ScamProbability: total,
 		SafeProbability: 100 - total,
 		TechScore:       techScore,

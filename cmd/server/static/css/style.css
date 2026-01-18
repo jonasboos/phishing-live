@@ -456,3 +456,34 @@ main {
     display: flex;
     justify-content: space-between;
 }
+
+/* View Toggles */
+.view-toggles {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.toggle-btn {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.toggle-btn:hover {
+    background: #222;
+    color: #ddd;
+}
+
+.toggle-btn.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}

@@ -1,0 +1,71 @@
+PHISHING ANALYSE SERVER - TECHNISCHE DOKUMENTATION
+==================================================
+Datei: cmd/server/main.go
+
+1. ÜBERSICHT
+------------
+Der Server ist eine Go-Webanwendung, die als Kernstück der Phishing-Live-Analyse dient. Er empfängt E-Mails (Upload oder Test-Files), analysiert sie in Echtzeit und stellt die Ergebnisse über ein Web-Interface dar.
+
+2. ARCHITEKTUR
+--------------
+- **HTTP Server**: Startet standardmäßig auf Port 8080.
+- **Handler**:
+  - `/`: Lädt das Haupt-Interface (`templates/index.html`).
+  - `/analyze`: Verarbeitet POST-Uploads oder GET-Requests für Test-Dateien.
+  - `/static/`: Liefert CSS und Assets aus.
+- **Datenhaltung**:
+  - `memoryStore`: Ein Thread-sicherer In-Memory Cache (Map) für hochgeladene Dateien (wird stündlich geleert).
+  - `globalStats`: Lädt beim Start die vom Trainer generierte `linguistic_stats.json`.
+
+3. ANALYSE-PIPELINE (`analyzeEmail`)
+------------------------------------
+Die Analyse prüft eine E-Mail auf drei Ebenen. Der finale Score (0-100%) setzt sich gewichtet zusammen:
+
+A. Technical Score (Gewichtung: 40%)
+   Fokus auf Infrastruktur und Authentifizierung.
+   - **DNS Checks**:
+     - MX Records: Existieren Mail-Server für die Absender-Domain?
+     - SPF/DMARC: Werden aktive Records im DNS gefunden?
+   - **Header Authentifizierung**:
+     - Prüft `Authentication-Results` Header auf SPF/DKIM/DMARC Pass/Fail.
+     - Fail = Hohe Penalty (+20-30 Punkte).
+   - **Domain Trust**:
+     - Vergleicht die Absender-Domain mit einer internen Allowlist (Google, PayPal, etc.).
+     - Prüft gegen Spamhaus DBL (via Google DoH API) auf Blacklisting.
+   - **Mismatch Detection**:
+     - Vergleicht `From` vs. `Return-Path` und `Reply-To`. Inkonsistenzen deuten auf Spoofing hin.
+
+B. Body Linguistics (Gewichtung: 35%)
+   Fokus auf den Inhalt und die Sprache der E-Mail.
+   - **Keyword Matching**: Scannt den Text nach bekannten Phishing-Signalwörtern (definiert in `riskFactors.Suspiciouskeywords`).
+   - **Statistischer Abgleich**: Vergleicht die Worthäufigkeit mit `globalStats` (Ground Truth aus dem Training).
+   - **Shouting Score**: Bestraft Texte mit übermäßig vielen Großbuchstaben (>25%).
+
+C. Subject Analysis (Gewichtung: 25%)
+   Fokus auf die Betreffzeile.
+   - **Decoding**: Nutzt `mime.WordDecoder` (RFC 2047), um kodierte Betreffzeilen (z.B. `=?UTF-8?Q?...`) lesbar zu machen.
+   - **Trigger-Suche**: Sucht nach Alarm-Wörtern wie "Urgent", "Verify", "Suspended".
+
+4. E-MAIL PARSING (ROBUSTHEIT)
+------------------------------
+Das System verwendet einen spezialisierten Parser, um Evasion-Techniken zu umgehen:
+
+- **Deep Search (`parseMultipart`)**:
+  - Durchsucht rekursiv die gesamte MIME-Struktur einer E-Mail.
+  - Findet Inhalts-Parts auch in tief verschachtelten `multipart/mixed` oder `multipart/alternative` Strukturen.
+  - Priorisiert `text/html` für die Vorschau.
+  - **Auto-Translation**: Erkennt automatisch die Sprache (via `whatlanggo`) und übersetzt nicht-englische Inhalte (via `gtranslate`) vor der linguistischen Analyse ins Englische.
+
+- **HTML Sanitization (`stripHTML`)**:
+  - Entfernt für die Text-Analyse alle HTML-Tags.
+  - WICHTIG: `<script>` und `<style>` Blöcke werden komplett entfernt, damit CSS-Klassen oder JS-Code nicht fälschlicherweise als Text analysiert werden.
+
+- **Authentic Preview**:
+  - Für Uploads wird der bereinigte HTML-Code (`HTMLBody`) in einem isolierten `<iframe>` dargestellt.
+  - Dies bewahrt das originale Layout, verhindert aber XSS (Cross-Site Scripting) durch Entfernen von Skripten.
+
+5. DATENSTRUKTUREN
+------------------
+- `AnalysisResult`: Das zentrale Ergebnis-Objekt, das an das Frontend übergeben wird.
+- `RiskFactors`: Detaillierte Liste der gefundenen Probleme (für die UI-Anzeige).
+- `ScoreBreakdown`: Aufschlüsselung der Punktevergabe für Transparenz.
